@@ -38,10 +38,10 @@ nodes:
         node-labels: "ingress-ready=true"
   extraPortMappings:
   - containerPort: 80
-    hostPort: 8080
+    hostPort: 9080
     protocol: TCP
   - containerPort: 443
-    hostPort: 8443
+    hostPort: 9443
     protocol: TCP
   - containerPort: 30000
     hostPort: 30000
@@ -125,7 +125,7 @@ kubectl get svc -n microservices-demo
 echo ""
 echo "🔗 Accès aux services :"
 echo "  - Services via NodePort : http://localhost:30000, http://localhost:30001, etc."
-echo "  - Services via Ingress : http://localhost:8080"
+echo "  - Services via Ingress : http://localhost:9080"
 echo ""
 echo "📊 Commandes utiles :"
 echo "  - Logs PostgreSQL    : kubectl logs -f deployment/postgres -n microservices-demo"
