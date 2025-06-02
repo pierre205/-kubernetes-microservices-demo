@@ -1,9 +1,3 @@
--- Create database schema
-CREATE DATABASE microservices_db;
-
--- Connect to the database
-\c microservices_db;
-
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -14,8 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Create indexes
-CREATE INDEX idx_users_name ON users(name);
-CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 
 -- Insert sample data
 INSERT INTO users (name, email) VALUES
@@ -33,9 +27,12 @@ BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+
+$$
+ language 'plpgsql';
 
 -- Create trigger for auto-updating updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users 
     FOR EACH ROW 
@@ -50,11 +47,6 @@ SELECT
     MIN(created_at) as first_user_date,
     MAX(created_at) as latest_user_date
 FROM users;
-
--- Grant permissions (for production use)
--- CREATE USER app_user WITH PASSWORD 'secure_password';
--- GRANT SELECT, INSERT, UPDATE, DELETE ON users TO app_user;
--- GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO app_user;
 
 -- Display initial data
 SELECT 'Database initialized successfully!' as status;

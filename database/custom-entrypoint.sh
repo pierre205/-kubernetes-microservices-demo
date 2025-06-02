@@ -6,5 +6,5 @@ echo "📋 Database: $POSTGRES_DB"
 echo "👤 User: $POSTGRES_USER"
 echo "🕒 $(date)"
 
-# Call the original entrypoint
-exec docker-entrypoint.sh "$@"
+# CORRECTION: Appel du vrai entrypoint PostgreSQL avec chemin complet
+exec /usr/local/bin/docker-entrypoint.sh "$@"
