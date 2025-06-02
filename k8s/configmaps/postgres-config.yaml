@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: microservices-demo
+data:
+  postgresql.conf: |
+    # Performance optimizations
+    shared_buffers = 256MB
+    effective_cache_size = 1GB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    
+    # Logging
+    logging_collector = on
+    log_directory = 'log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_min_messages = warning
+    log_min_error_statement = error
+    
+    # Connection settings
+    max_connections = 200
+    
+  init.sql: |
+    -- Create users table
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Create indexes
+    CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+    CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
+
+    -- Insert sample data
+    INSERT INTO users (name, email) VALUES
+        ('Alice Johnson', 'alice@example.com'),
+        ('Bob Smith', 'bob@example.com'),
+        ('Charlie Brown', 'charlie@example.com'),
+        ('Diana Prince', 'diana@example.com'),
+        ('Ethan Hunt', 'ethan@example.com')
+    ON CONFLICT (name) DO NOTHING;
+
+    -- Create function for updated_at trigger
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+
+    -- Create trigger
+    DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+    CREATE TRIGGER update_users_updated_at 
+        BEFORE UPDATE ON users 
+        FOR EACH ROW 
+        EXECUTE FUNCTION update_updated_at_column();
+
+    -- Create view
+    CREATE OR REPLACE VIEW user_stats AS
+    SELECT 
+        COUNT(*) as total_users,
+        COUNT(*) FILTER (WHERE created_at > CURRENT_DATE - INTERVAL '7 days') as users_last_week,
+        COUNT(*) FILTER (WHERE created_at > CURRENT_DATE - INTERVAL '30 days') as users_last_month,
+        MIN(created_at) as first_user_date,
+        MAX(created_at) as latest_user_date
+    FROM users;
+
+    SELECT 'Database initialized successfully!' as status;
