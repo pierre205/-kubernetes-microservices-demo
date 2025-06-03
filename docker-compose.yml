@@ -133,7 +133,7 @@ services:
       - microservices-net
     restart: unless-stopped
 
-  # Grafana (Dashboards) - PORT CORRIGÉ
+  # Grafana (Dashboards)
   grafana:
     image: grafana/grafana:latest
     container_name: microservices-grafana
@@ -142,7 +142,7 @@ services:
       GF_USERS_ALLOW_SIGN_UP: false
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
     ports:
-      - "3002:3000"  # ✅ PORT CORRIGÉ: 3002 au lieu de 3001
+      - "3002:3000" 
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
